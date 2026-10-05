@@ -1,0 +1,2171 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width,
+               initial-scale=1.0,
+               maximum-scale=1.0,
+               user-scalable=no">
+
+<title>🐥 Ayam Billiard</title>
+
+<style>
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    min-height: 100%;
+    overflow: hidden;
+    touch-action: none;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(
+        135deg,
+        #ffd8eb,
+        #f5a5ca
+    );
+}
+
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.game {
+    width: 100%;
+    max-width: 1000px;
+    padding: 7px;
+}
+
+/* =========================
+   HEADER
+========================= */
+
+.top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 5px;
+    margin-bottom: 5px;
+    color: #60213f;
+}
+
+.title {
+    font-size: clamp(17px, 4vw, 28px);
+    font-weight: bold;
+}
+
+.scores {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.score {
+    background: white;
+    border: 2px solid #d77ca7;
+    border-radius: 13px;
+    padding: 5px 8px;
+    font-size: clamp(10px, 2.4vw, 15px);
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+button {
+    border: none;
+    background: #a84679;
+    color: white;
+    border-radius: 11px;
+    min-width: 38px;
+    min-height: 36px;
+    padding: 6px 9px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+button:active {
+    transform: scale(.94);
+}
+
+/* =========================
+   TABLE
+========================= */
+
+.table-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 960px;
+
+    border-radius: 14px;
+    border: 3px solid #74304f;
+
+    box-shadow:
+        0 8px 20px rgba(80, 20, 50, .25);
+
+    touch-action: none;
+}
+
+/* =========================
+   INFO
+========================= */
+
+.info {
+    text-align: center;
+    color: #672847;
+    font-size: clamp(10px, 2.5vw, 14px);
+    margin-top: 5px;
+}
+
+/* =========================
+   HASIL GAME
+========================= */
+
+.result {
+    position: fixed;
+    inset: 0;
+
+    display: none;
+
+    align-items: center;
+    justify-content: center;
+
+    background: rgba(70, 20, 50, .45);
+
+    z-index: 100;
+}
+
+.result.show {
+    display: flex;
+}
+
+.result-box {
+    background: white;
+    border: 3px solid #a84679;
+    border-radius: 22px;
+
+    padding: 25px 30px;
+
+    text-align: center;
+
+    width: min(85%, 350px);
+
+    box-shadow:
+        0 12px 35px rgba(0,0,0,.3);
+}
+
+.result-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: #6a2949;
+    margin-bottom: 10px;
+}
+
+.result-text {
+    color: #753653;
+    margin-bottom: 18px;
+}
+
+.result-box button {
+    font-size: 16px;
+    padding: 11px 20px;
+}
+
+/* =========================
+   PORTRAIT
+========================= */
+
+@media (orientation: portrait) {
+
+    body::after {
+
+        content:
+            "📱 Putar HP ke landscape untuk bermain";
+
+        position: fixed;
+
+        left: 50%;
+        top: 50%;
+
+        transform:
+            translate(-50%, -50%);
+
+        background:
+            rgba(255,255,255,.96);
+
+        color: #642442;
+
+        padding: 18px 22px;
+
+        border-radius: 18px;
+
+        font-size: 16px;
+
+        font-weight: bold;
+
+        text-align: center;
+
+        width: 80%;
+
+        z-index: 999;
+
+        box-shadow:
+            0 8px 25px rgba(0,0,0,.2);
+    }
+}
+
+/* =========================
+   LANDSCAPE HP
+========================= */
+
+@media (orientation: landscape) {
+
+    body {
+        height: 100svh;
+        min-height: 100svh;
+        overflow: hidden;
+    }
+
+    .game {
+        width: 100%;
+        height: 100svh;
+        padding: 3px 7px;
+    }
+
+    .top {
+        height: 38px;
+        margin-bottom: 3px;
+    }
+
+    .info {
+        display: none;
+    }
+
+    .table-wrapper {
+        width: 100%;
+        height: calc(100svh - 44px);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    canvas {
+        width: auto;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+    }
+}
+
+</style>
+</head>
+
+
+<body>
+
+
+<div class="game">
+
+    <div class="top">
+
+        <div class="title">
+            🐥 Ayam Billiard
+        </div>
+
+        <div class="scores">
+
+            <div class="score">
+                🐥 <span id="playerScore">0</span>
+            </div>
+
+            <div class="score">
+                🤖 <span id="botScore">0</span>
+            </div>
+
+            <button id="soundButton">
+                🔊
+            </button>
+
+            <button id="resetButton">
+                🔄
+            </button>
+
+        </div>
+
+    </div>
+
+
+    <div class="table-wrapper">
+
+        <canvas
+            id="gameCanvas"
+            width="960"
+            height="540">
+        </canvas>
+
+    </div>
+
+
+    <div class="info">
+        🐥 Tarik ayam putih menjauh lalu lepaskan untuk memukul.
+    </div>
+
+</div>
+
+
+<!-- HASIL GAME -->
+
+<div
+    class="result"
+    id="resultScreen">
+
+    <div class="result-box">
+
+        <div
+            class="result-title"
+            id="resultTitle">
+        </div>
+
+        <div
+            class="result-text"
+            id="resultText">
+        </div>
+
+        <button id="playAgainButton">
+            🐥 Main Lagi
+        </button>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     AUDIO
+========================= -->
+
+<audio
+    id="bgm"
+    src="bgm.mp3"
+    loop>
+</audio>
+
+<audio
+    id="hitSound"
+    src="hit.mp3">
+</audio>
+
+<audio
+    id="pocketSound"
+    src="pocket.mp3">
+</audio>
+
+<audio
+    id="winSound"
+    src="win.mp3">
+</audio>
+
+<audio
+    id="loseSound"
+    src="lose.mp3">
+</audio>
+
+
+<script>
+
+/* ==================================================
+   CANVAS
+================================================== */
+
+const canvas =
+    document.getElementById("gameCanvas");
+
+const ctx =
+    canvas.getContext("2d");
+
+const WIDTH = 960;
+const HEIGHT = 540;
+
+
+/* ==================================================
+   MEJA
+================================================== */
+
+const table = {
+
+    x: 55,
+    y: 55,
+
+    width: 850,
+    height: 430
+
+};
+
+
+/* ==================================================
+   LUBANG
+================================================== */
+
+const pocketRadius = 27;
+
+const pockets = [
+
+    [table.x, table.y],
+
+    [
+        table.x + table.width / 2,
+        table.y
+    ],
+
+    [
+        table.x + table.width,
+        table.y
+    ],
+
+    [
+        table.x,
+        table.y + table.height
+    ],
+
+    [
+        table.x + table.width / 2,
+        table.y + table.height
+    ],
+
+    [
+        table.x + table.width,
+        table.y + table.height
+    ]
+
+];
+
+
+/* ==================================================
+   AYAM
+================================================== */
+
+const ballRadius = 17;
+
+const colors = [
+
+    "#f4d21f",
+    "#2864d7",
+    "#e43c48",
+    "#783db8",
+    "#f18a27",
+    "#16a064",
+    "#76283c",
+    "#171717"
+
+];
+
+let balls = [];
+
+
+/* ==================================================
+   GAME STATE
+================================================== */
+
+let playerScore = 0;
+let botScore = 0;
+
+let currentTurn = "player";
+
+let isMoving = false;
+let aiming = false;
+
+let aimX = 0;
+let aimY = 0;
+
+let shotPocketed = false;
+
+let gameOver = false;
+
+let soundEnabled = true;
+
+let botTimer = null;
+
+
+/* ==================================================
+   AUDIO
+================================================== */
+
+const bgm =
+    document.getElementById("bgm");
+
+const hitSound =
+    document.getElementById("hitSound");
+
+const pocketSound =
+    document.getElementById("pocketSound");
+
+const winSound =
+    document.getElementById("winSound");
+
+const loseSound =
+    document.getElementById("loseSound");
+
+
+function playSound(sound) {
+
+    if (!soundEnabled)
+        return;
+
+    sound.currentTime = 0;
+
+    sound.play().catch(() => {});
+
+}
+
+
+function startMusic() {
+
+    if (!soundEnabled)
+        return;
+
+    bgm.volume = 0.35;
+
+    bgm.play().catch(() => {});
+
+}
+
+
+/* ==================================================
+   TOMBOL SOUND
+================================================== */
+
+document
+    .getElementById("soundButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            soundEnabled =
+                !soundEnabled;
+
+            const button =
+                document.getElementById(
+                    "soundButton"
+                );
+
+            button.textContent =
+                soundEnabled
+                ? "🔊"
+                : "🔇";
+
+
+            if (soundEnabled) {
+
+                startMusic();
+
+            } else {
+
+                bgm.pause();
+
+            }
+
+        }
+    );
+
+
+/* ==================================================
+   BUAT AYAM
+================================================== */
+
+function createBall(
+    x,
+    y,
+    color,
+    number,
+    player = false
+) {
+
+    return {
+
+        x,
+        y,
+
+        vx: 0,
+        vy: 0,
+
+        radius: ballRadius,
+
+        color,
+        number,
+
+        player,
+
+        pocketed: false
+
+    };
+
+}
+
+
+/* ==================================================
+   RESET
+================================================== */
+
+function resetGame() {
+
+    clearTimeout(botTimer);
+
+    balls = [];
+
+    playerScore = 0;
+    botScore = 0;
+
+    currentTurn = "player";
+
+    isMoving = false;
+    aiming = false;
+
+    shotPocketed = false;
+
+    gameOver = false;
+
+
+    document
+        .getElementById("resultScreen")
+        .classList.remove("show");
+
+
+    /* AYAM PUTIH */
+
+    balls.push(
+
+        createBall(
+            230,
+            270,
+            "#fff7df",
+            0,
+            true
+        )
+
+    );
+
+
+    /* 15 AYAM */
+
+    const formation = [
+
+        [600,270,0],
+
+        [634,252,1],
+        [634,288,2],
+
+        [668,234,3],
+        [668,270,4],
+        [668,306,5],
+
+        [702,216,6],
+        [702,252,7],
+        [702,288,0],
+        [702,324,1],
+
+        [736,234,2],
+        [736,270,3],
+        [736,306,4],
+
+        [770,252,5],
+        [770,288,6]
+
+    ];
+
+
+    formation.forEach(
+        (p, i) => {
+
+            balls.push(
+
+                createBall(
+                    p[0],
+                    p[1],
+                    colors[p[2]],
+                    i + 1
+                )
+
+            );
+
+        }
+    );
+
+
+    updateScore();
+
+    drawGame();
+
+}
+
+
+/* ==================================================
+   SCORE
+================================================== */
+
+function updateScore() {
+
+    document
+        .getElementById("playerScore")
+        .textContent =
+        playerScore;
+
+    document
+        .getElementById("botScore")
+        .textContent =
+        botScore;
+
+}
+
+
+/* ==================================================
+   GAMBAR MEJA
+================================================== */
+
+function drawTable() {
+
+    /* background */
+
+    ctx.fillStyle =
+        "#f7a9cb";
+
+    ctx.fillRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+
+
+    /* pinggir meja */
+
+    ctx.fillStyle =
+        "#9e3d6d";
+
+    ctx.fillRect(
+
+        table.x - 18,
+        table.y - 18,
+
+        table.width + 36,
+        table.height + 36
+
+    );
+
+
+    /* kain */
+
+    ctx.fillStyle =
+        "#ee82b1";
+
+    ctx.fillRect(
+
+        table.x,
+        table.y,
+
+        table.width,
+        table.height
+
+    );
+
+
+    /* lubang */
+
+    pockets.forEach(
+        pocket => {
+
+            ctx.beginPath();
+
+            ctx.arc(
+
+                pocket[0],
+                pocket[1],
+                pocketRadius,
+
+                0,
+                Math.PI * 2
+
+            );
+
+            ctx.fillStyle =
+                "#351425";
+
+            ctx.fill();
+
+        }
+    );
+
+
+    /* garis tengah */
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,.25)";
+
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+
+        table.x +
+        table.width / 2,
+
+        table.y
+
+    );
+
+    ctx.lineTo(
+
+        table.x +
+        table.width / 2,
+
+        table.y +
+        table.height
+
+    );
+
+    ctx.stroke();
+
+}
+
+
+/* ==================================================
+   GAMBAR AYAM
+================================================== */
+
+function drawChicken(ball) {
+
+    if (ball.pocketed)
+        return;
+
+
+    ctx.save();
+
+
+    ctx.translate(
+        ball.x,
+        ball.y
+    );
+
+
+    /* badan */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        0,
+        ball.radius,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fillStyle =
+        ball.color;
+
+    ctx.fill();
+
+
+    ctx.strokeStyle =
+        "rgba(80,30,50,.45)";
+
+    ctx.lineWidth = 2;
+
+    ctx.stroke();
+
+
+    /* mata kiri */
+
+    ctx.fillStyle =
+        "#222";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        -5,
+        -4,
+        2.5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    /* mata kanan */
+
+    ctx.beginPath();
+
+    ctx.arc(
+        5,
+        -4,
+        2.5,
+        0,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    /* paruh */
+
+    ctx.fillStyle =
+        "#ff8a21";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        -4,
+        1
+    );
+
+    ctx.lineTo(
+        0,
+        5
+    );
+
+    ctx.lineTo(
+        4,
+        1
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+
+    /* jambul */
+
+    ctx.fillStyle =
+        "#e74b63";
+
+    ctx.beginPath();
+
+    ctx.arc(
+        0,
+        -15,
+        5,
+        Math.PI,
+        Math.PI * 2
+    );
+
+    ctx.fill();
+
+
+    /* nomor */
+
+    if (!ball.player) {
+
+        ctx.fillStyle =
+            "white";
+
+        ctx.font =
+            "bold 8px Arial";
+
+        ctx.textAlign =
+            "center";
+
+        ctx.textBaseline =
+            "middle";
+
+        ctx.fillText(
+            ball.number,
+            0,
+            11
+        );
+
+    }
+
+
+    ctx.restore();
+
+}
+
+
+/* ==================================================
+   AIM
+================================================== */
+
+function drawAim() {
+
+    if (!aiming)
+        return;
+
+
+    const player =
+        balls[0];
+
+
+    const dx =
+        player.x - aimX;
+
+    const dy =
+        player.y - aimY;
+
+
+    const distance =
+        Math.hypot(dx, dy);
+
+
+    if (distance < 1)
+        return;
+
+
+    const power =
+        Math.min(
+            distance,
+            180
+        );
+
+
+    const endX =
+        player.x +
+        (dx / distance) *
+        power;
+
+
+    const endY =
+        player.y +
+        (dy / distance) *
+        power;
+
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+        player.x,
+        player.y
+    );
+
+    ctx.lineTo(
+        endX,
+        endY
+    );
+
+
+    ctx.strokeStyle =
+        "rgba(255,255,255,.9)";
+
+    ctx.lineWidth = 4;
+
+    ctx.setLineDash([
+        10,
+        8
+    ]);
+
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+
+
+    ctx.fillStyle =
+        "rgba(255,255,255,.9)";
+
+    ctx.font =
+        "bold 14px Arial";
+
+    ctx.textAlign =
+        "center";
+
+
+    ctx.fillText(
+
+        "POWER " +
+        Math.round(
+            power / 180 * 100
+        ) +
+        "%",
+
+        endX,
+        endY - 12
+
+    );
+
+}
+
+
+/* ==================================================
+   GAMBAR GAME
+================================================== */
+
+function drawGame() {
+
+    ctx.clearRect(
+        0,
+        0,
+        WIDTH,
+        HEIGHT
+    );
+
+
+    drawTable();
+
+
+    balls.forEach(
+        ball =>
+            drawChicken(ball)
+    );
+
+
+    drawAim();
+
+}
+
+
+/* ==================================================
+   POSISI SENTUH
+================================================== */
+
+function getTouchPosition(event) {
+
+    const rect =
+        canvas.getBoundingClientRect();
+
+
+    return {
+
+        x:
+            (event.clientX -
+             rect.left)
+            *
+            WIDTH /
+            rect.width,
+
+        y:
+            (event.clientY -
+             rect.top)
+            *
+            HEIGHT /
+            rect.height
+
+    };
+
+}
+
+
+/* ==================================================
+   POINTER DOWN
+================================================== */
+
+canvas.addEventListener(
+    "pointerdown",
+    event => {
+
+        if (
+            isMoving ||
+            gameOver ||
+            currentTurn !== "player"
+        )
+            return;
+
+
+        startMusic();
+
+
+        const player =
+            balls[0];
+
+
+        const pos =
+            getTouchPosition(event);
+
+
+        const distance =
+            Math.hypot(
+
+                pos.x - player.x,
+                pos.y - player.y
+
+            );
+
+
+        if (distance < 48) {
+
+            aiming = true;
+
+            aimX = pos.x;
+            aimY = pos.y;
+
+
+            canvas.setPointerCapture(
+                event.pointerId
+            );
+
+
+            drawGame();
+
+        }
+
+    }
+);
+
+
+/* ==================================================
+   POINTER MOVE
+================================================== */
+
+canvas.addEventListener(
+    "pointermove",
+    event => {
+
+        if (!aiming)
+            return;
+
+
+        const pos =
+            getTouchPosition(event);
+
+
+        aimX = pos.x;
+        aimY = pos.y;
+
+
+        drawGame();
+
+    }
+);
+
+
+/* ==================================================
+   POINTER UP
+================================================== */
+
+canvas.addEventListener(
+    "pointerup",
+    event => {
+
+        if (!aiming)
+            return;
+
+
+        aiming = false;
+
+
+        const player =
+            balls[0];
+
+
+        const pos =
+            getTouchPosition(event);
+
+
+        const dx =
+            player.x - pos.x;
+
+        const dy =
+            player.y - pos.y;
+
+
+        const distance =
+            Math.hypot(
+                dx,
+                dy
+            );
+
+
+        if (distance < 10) {
+
+            drawGame();
+
+            return;
+
+        }
+
+
+        const power =
+            Math.min(
+                distance,
+                180
+            );
+
+
+        /*
+           KECEPATAN PUKULAN
+           0.25 = cukup cepat
+        */
+
+        player.vx =
+            (dx / distance)
+            *
+            power
+            *
+            0.25;
+
+
+        player.vy =
+            (dy / distance)
+            *
+            power
+            *
+            0.25;
+
+
+        shotPocketed = false;
+
+        isMoving = true;
+
+
+        playSound(hitSound);
+
+
+        physics();
+
+    }
+);
+
+
+/* ==================================================
+   FISIKA
+================================================== */
+
+function physics() {
+
+    let moving = false;
+
+
+    /* GERAK */
+
+    balls.forEach(
+        ball => {
+
+            if (ball.pocketed)
+                return;
+
+
+            ball.x += ball.vx;
+            ball.y += ball.vy;
+
+
+            /* gesekan */
+
+            ball.vx *= 0.985;
+            ball.vy *= 0.985;
+
+
+            if (
+
+                Math.abs(ball.vx) > 0.05 ||
+                Math.abs(ball.vy) > 0.05
+
+            ) {
+
+                moving = true;
+
+            } else {
+
+                ball.vx = 0;
+                ball.vy = 0;
+
+            }
+
+
+            /* DINDING KIRI */
+
+            if (
+                ball.x - ball.radius <
+                table.x
+            ) {
+
+                ball.x =
+                    table.x +
+                    ball.radius;
+
+                ball.vx *= -0.8;
+
+            }
+
+
+            /* DINDING KANAN */
+
+            if (
+                ball.x + ball.radius >
+                table.x +
+                table.width
+            ) {
+
+                ball.x =
+                    table.x +
+                    table.width -
+                    ball.radius;
+
+                ball.vx *= -0.8;
+
+            }
+
+
+            /* DINDING ATAS */
+
+            if (
+                ball.y - ball.radius <
+                table.y
+            ) {
+
+                ball.y =
+                    table.y +
+                    ball.radius;
+
+                ball.vy *= -0.8;
+
+            }
+
+
+            /* DINDING BAWAH */
+
+            if (
+                ball.y + ball.radius >
+                table.y +
+                table.height
+            ) {
+
+                ball.y =
+                    table.y +
+                    table.height -
+                    ball.radius;
+
+                ball.vy *= -0.8;
+
+            }
+
+        }
+    );
+
+
+    /* ==================================================
+       TABRAKAN
+    ================================================== */
+
+    for (
+        let i = 0;
+        i < balls.length;
+        i++
+    ) {
+
+        for (
+            let j = i + 1;
+            j < balls.length;
+            j++
+        ) {
+
+            const a =
+                balls[i];
+
+            const b =
+                balls[j];
+
+
+            if (
+                a.pocketed ||
+                b.pocketed
+            )
+                continue;
+
+
+            const dx =
+                b.x - a.x;
+
+            const dy =
+                b.y - a.y;
+
+
+            const distance =
+                Math.hypot(
+                    dx,
+                    dy
+                );
+
+
+            const minDistance =
+                a.radius +
+                b.radius;
+
+
+            if (
+
+                distance > 0 &&
+                distance < minDistance
+
+            ) {
+
+                const nx =
+                    dx / distance;
+
+                const ny =
+                    dy / distance;
+
+
+                const relativeVX =
+                    b.vx - a.vx;
+
+                const relativeVY =
+                    b.vy - a.vy;
+
+
+                const relativeVelocity =
+                    relativeVX * nx +
+                    relativeVY * ny;
+
+
+                if (
+                    relativeVelocity < 0
+                ) {
+
+                    const impulse =
+                        -relativeVelocity;
+
+
+                    a.vx -=
+                        nx * impulse;
+
+                    a.vy -=
+                        ny * impulse;
+
+
+                    b.vx +=
+                        nx * impulse;
+
+                    b.vy +=
+                        ny * impulse;
+
+
+                    /* suara tabrakan */
+
+                    playSound(hitSound);
+
+                }
+
+
+                /* pisahkan ayam */
+
+                const overlap =
+                    minDistance -
+                    distance;
+
+
+                a.x -=
+                    nx *
+                    overlap / 2;
+
+                a.y -=
+                    ny *
+                    overlap / 2;
+
+
+                b.x +=
+                    nx *
+                    overlap / 2;
+
+                b.y +=
+                    ny *
+                    overlap / 2;
+
+            }
+
+        }
+
+    }
+
+
+    /* ==================================================
+       CEK LUBANG
+    ================================================== */
+
+    balls.forEach(
+        ball => {
+
+            if (ball.pocketed)
+                return;
+
+
+            pockets.forEach(
+                pocket => {
+
+                    const distance =
+                        Math.hypot(
+                        ball.x - pocket[0],
+                        ball.y - pocket[1]
+                     );
+
+
+                if (
+                    distance <
+                    pocketRadius + ball.radius * 0.45 
+                ) {
+
+                        /* AYAM PUTIH */
+
+                        if (ball.player) {
+
+                            ball.x = 230;
+                            ball.y = 270;
+
+                            ball.vx = 0;
+                            ball.vy = 0;
+
+                            playSound(
+                                pocketSound
+                            );
+
+                            return;
+
+                        }
+
+
+                        /* AYAM WARNA */
+
+                        ball.pocketed = true;
+
+                        shotPocketed = true;
+
+
+                        playSound(
+                            pocketSound
+                        );
+
+
+                        if (
+                            currentTurn ===
+                            "player"
+                        ) {
+
+                            playerScore++;
+
+                        } else {
+
+                            botScore++;
+
+                        }
+
+
+                        updateScore();
+
+
+                        checkWinner();
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    drawGame();
+
+
+    /* ==================================================
+       LANJUT / SELESAI PUKULAN
+    ================================================== */
+
+    if (moving) {
+
+        requestAnimationFrame(
+            physics
+        );
+
+    } else {
+
+        isMoving = false;
+
+
+        if (gameOver)
+            return;
+
+
+        /*
+           Kalau berhasil memasukkan ayam,
+           pemain mendapat giliran lagi.
+           Kalau tidak, giliran berpindah.
+        */
+
+        if (!shotPocketed) {
+
+            if (
+                currentTurn ===
+                "player"
+            ) {
+
+                currentTurn = "bot";
+
+                botTimer =
+                    setTimeout(
+                        botTurn,
+                        800
+                    );
+
+            } else {
+
+                currentTurn = "player";
+
+            }
+
+        } else {
+
+            if (
+                currentTurn ===
+                "bot"
+            ) {
+
+                botTimer =
+                    setTimeout(
+                        botTurn,
+                        800
+                    );
+
+            }
+
+        }
+
+    }
+
+}
+
+
+/* ==================================================
+   CEK PEMENANG
+================================================== */
+
+function checkWinner() {
+
+    const remaining =
+        balls.filter(
+            ball =>
+                !ball.player &&
+                !ball.pocketed
+        ).length;
+
+
+    if (remaining > 0)
+        return;
+
+
+    gameOver = true;
+
+    isMoving = false;
+
+
+    if (
+        playerScore >
+        botScore
+    ) {
+
+        showResult(
+            "🏆 KAMU MENANG!",
+            "Ayam-ayamnya berhasil kamu habiskan! 🐥",
+            true
+        );
+
+    } else if (
+        botScore >
+        playerScore
+    ) {
+
+        showResult(
+            "💀 KAMU KALAH!",
+            "Si bot ternyata jago juga... 🗿",
+            false
+        );
+
+    } else {
+
+        showResult(
+            "🤝 SERI!",
+            "Kalian sama-sama hebat.",
+            null
+        );
+
+    }
+
+}
+
+
+/* ==================================================
+   HASIL
+================================================== */
+
+function showResult(
+    title,
+    text,
+    playerWon
+) {
+
+    document
+        .getElementById("resultTitle")
+        .textContent =
+        title;
+
+
+    document
+        .getElementById("resultText")
+        .textContent =
+        text;
+
+
+    document
+        .getElementById("resultScreen")
+        .classList.add("show");
+
+
+    bgm.pause();
+
+
+    if (playerWon === true) {
+
+        playSound(winSound);
+
+    } else if (
+        playerWon === false
+    ) {
+
+        playSound(loseSound);
+
+    }
+
+}
+
+
+/* ==================================================
+   BOT
+================================================== */
+
+function botTurn() {
+
+    if (
+        gameOver ||
+        isMoving ||
+        currentTurn !== "bot"
+    )
+        return;
+
+
+    const cue =
+        balls[0];
+
+
+    const targets =
+        balls.filter(
+            ball =>
+                !ball.player &&
+                !ball.pocketed
+        );
+
+
+    if (
+        targets.length === 0
+    )
+        return;
+
+
+    const shot =
+        findBestBotShot(
+            cue,
+            targets
+        );
+
+
+    if (!shot) {
+
+        currentTurn =
+            "player";
+
+        return;
+
+    }
+
+
+    const dx =
+        shot.x - cue.x;
+
+    const dy =
+        shot.y - cue.y;
+
+
+    const distance =
+        Math.hypot(
+            dx,
+            dy
+        );
+
+
+    if (distance < 1) {
+
+        currentTurn =
+            "player";
+
+        return;
+
+    }
+
+
+    /*
+       BOT TIDAK ASAL MEMUKUL.
+       Dia mengarahkan cue ke
+       ghost ball position.
+    */
+
+    const power =
+        Math.min(
+            Math.max(
+                distance * 0.9,
+                80
+            ),
+            180
+        );
+
+
+    cue.vx =
+        (dx / distance)
+        *
+        power
+        *
+        0.25;
+
+
+    cue.vy =
+        (dy / distance)
+        *
+        power
+        *
+        0.25;
+
+
+    shotPocketed = false;
+
+    isMoving = true;
+
+
+    playSound(hitSound);
+
+
+    physics();
+
+}
+
+
+/* ==================================================
+   BOT MENCARI TEMBAKAN TERBAIK
+================================================== */
+
+function findBestBotShot(
+    cue,
+    targets
+) {
+
+    let best = null;
+
+    let bestScore =
+        Infinity;
+
+
+    targets.forEach(
+        target => {
+
+            pockets.forEach(
+                pocket => {
+
+                    const px =
+                        pocket[0];
+
+                    const py =
+                        pocket[1];
+
+
+                    /*
+                       Arah target -> lubang
+                    */
+
+                    const tx =
+                        px - target.x;
+
+                    const ty =
+                        py - target.y;
+
+
+                    const targetDistance =
+                        Math.hypot(
+                            tx,
+                            ty
+                        );
+
+
+                    if (
+                        targetDistance < 1
+                    )
+                        return;
+
+
+                    const ux =
+                        tx /
+                        targetDistance;
+
+                    const uy =
+                        ty /
+                        targetDistance;
+
+
+                    /*
+                       Ghost ball.
+
+                       Cue harus mengenai
+                       titik di belakang target.
+                    */
+
+                    const ghostX =
+                        target.x -
+                        ux *
+                        ballRadius *
+                        2;
+
+                    const ghostY =
+                        target.y -
+                        uy *
+                        ballRadius *
+                        2;
+
+
+                    /*
+                       Pastikan ghost ball
+                       masih di meja.
+                    */
+
+                    if (
+                        ghostX <
+                        table.x + ballRadius ||
+
+                        ghostX >
+                        table.x +
+                        table.width -
+                        ballRadius ||
+
+                        ghostY <
+                        table.y + ballRadius ||
+
+                        ghostY >
+                        table.y +
+                        table.height -
+                        ballRadius
+                    ) {
+
+                        return;
+
+                    }
+
+
+                    const cueDistance =
+                        Math.hypot(
+
+                            ghostX -
+                            cue.x,
+
+                            ghostY -
+                            cue.y
+
+                        );
+
+
+                    /*
+                       Semakin pendek jalannya,
+                       semakin bagus.
+
+                       Bot juga menyukai sudut
+                       yang tidak terlalu ekstrem.
+                    */
+
+                    const score =
+                        cueDistance +
+                        targetDistance * 0.7;
+
+
+                    if (
+                        score <
+                        bestScore
+                    ) {
+
+                        bestScore =
+                            score;
+
+
+                        best = {
+
+                            x: ghostX,
+                            y: ghostY,
+
+                            target,
+                            pocket
+
+                        };
+
+                    }
+
+                }
+            );
+
+        }
+    );
+
+
+    return best;
+
+}
+
+
+/* ==================================================
+   RESET BUTTON
+================================================== */
+
+document
+    .getElementById("resetButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            resetGame();
+
+            startMusic();
+
+        }
+    );
+
+
+/* ==================================================
+   MAIN LAGI
+================================================== */
+
+document
+    .getElementById("playAgainButton")
+    .addEventListener(
+        "click",
+        () => {
+
+            resetGame();
+
+            startMusic();
+
+        }
+    );
+
+
+/* ==================================================
+   MULAI
+================================================== */
+
+resetGame();
+
+</script>
+
+</body>
+</html>
